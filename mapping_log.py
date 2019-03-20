@@ -6,7 +6,7 @@ import csv
 from ckanapi import RemoteCKAN
 url="https://scidm.nchc.org.tw"
 ua = 'ckanapiexample/1.0 (+http://example.com/my/website)'
-ckan_key = '22cf2833-1fda-48c6-b33c-f7519867d1db'
+ckan_key = ''
 scidm = RemoteCKAN(url, apikey=ckan_key, user_agent=ua)
 
 # cache dict
