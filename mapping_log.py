@@ -6,20 +6,21 @@ import csv
 from ckanapi import RemoteCKAN
 url="https://scidm.nchc.org.tw"
 ua = 'ckanapiexample/1.0 (+http://example.com/my/website)'
-scidm = RemoteCKAN(url, user_agent=ua)
+ckan_key = '22cf2833-1fda-48c6-b33c-f7519867d1db'
+scidm = RemoteCKAN(url, apikey=ckan_key, user_agent=ua)
 
 # cache dict
 ckanDataset = {}
 ckanDatasetName = {}
 ckanDatasetNameFalse = ['xxx']
 
-
 # parse apache2 log
+ckanLogFile = "ckanAll.log"
 HOST = r'^(?P<host>.*?)'
 SPACE = r'\s'
 IDENTITY = r'\S+'
 USER = r'\S+'
-TIME = r'(?P<time>\[.*?\])'
+TIME = r'\[(?P<time>.*?)\]'
 REQUEST = r'\"(?P<request>.*?)\"'
 STATUS = r'(?P<status>\d{3})'
 SIZE = r'(?P<size>\S+)'
@@ -37,7 +38,7 @@ def logParser(log_line):
           )
 
 def get_ckan_data(name):
-    print('get ckanapi...',name)
+    print('checking...',name)
     global ckanDataset, ckanDatasetName, ckanDatasetNameFalse
     ckanData = {}
     if name in ckanDatasetNameFalse:
@@ -53,7 +54,7 @@ def get_ckan_data(name):
             dId = ckanDatasetName[name]
             return ckanDataset[dId]
     try:
-        print('run ckanapi...',name)
+        print('run ckanapi . ..',name)
         pkg_data = scidm.action.package_show(id=name)
         datasetId = pkg_data['id']
         datasetName = pkg_data['name'] 
@@ -125,7 +126,7 @@ def datasetRequest(data):
 # parse apache2 request log to download or not
 def datasetDownloadandViewRequest(data):
     DOWNLOAD = r'^GET\s/dataset.*/download'
-    VIEW = r'^GET\s/dataset.*/resource.*/view'
+    VIEW = r'^GET\s/dataset.*/resource.*/view/'
     match_download = re.search(DOWNLOAD, data)
     match_view = re.search(VIEW, data)
     if match_download != None:
@@ -152,7 +153,7 @@ csv_group_file = csv.writer(group_file,quoting=csv.QUOTE_ALL)
 org_file = open('dataset-organization.csv', 'w')
 csv_org_file = csv.writer(org_file, quoting=csv.QUOTE_ALL)
 
-f = open('f10.log', 'r')
+f = open(ckanLogFile, 'r')
 #f = open('allCkanCustom.log', 'r')
 for line in f: # read all lines already in the file
     #print(line.strip())
@@ -165,20 +166,20 @@ for line in f: # read all lines already in the file
         dataset = datasetRequest(request)
         download = datasetDownloadandViewRequest(request)
         #print(host, dataset, download) # print IP_or_Host, dataste id or name, download true or false
-        #dataset_log = "'{0}', '{1}', '{2}', '{3}'\r\n".format(host, dataset, download, request)
+        dataset_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}'\r\n".format(host, dataset, download, time, size, request)
         #dataset_file.write(dataset_log)
-        csv_dataset_file.writerow([host, dataset, download, request])
-        #print(dataset_log)
+        csv_dataset_file.writerow([host, dataset, download, time, size, request])
+        print(dataset_log)
         orgName = find_dataset_org(dataset)
-        #dataset_org_log = "'{0}', '{1}', '{2}', '{3}', '{4}'\r\n".format(orgName, host, dataset, download, request)
+        #dataset_org_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}'\r\n".format(orgName, host, dataset, download, time, size, request)
         #org_file.write(dataset_org_log)
-        csv_org_file.writerow([orgName, host, dataset, download, request])
+        csv_org_file.writerow([orgName, host, dataset, download, time, size, request])
         dGroups = find_dataset_group(dataset)
         if dGroups != False:
             for dg in dGroups:
-                #dataset_group_log = "'{0}', '{1}', '{2}', '{3}', '{4}'\r\n".format(dg, host, dataset, download, request)
+                #dataset_group_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}'\r\n".format(dg, host, dataset, download, time, size, request)
                 #group_file.write(dataset_group_log)
-                csv_group_file.writerow([dg, host, dataset, download, request])
+                csv_group_file.writerow([dg, host, dataset, download, time, size, request])
 
 dataset_file.close()
 org_file.close()

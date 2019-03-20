@@ -1,0 +1,45 @@
+#!/bin/bash
+# copy log to $logDir and extract
+
+dailyDir="ckanLogAnalysis/runEnv/dailyLogResult"
+weeklyDir="ckanLogAnalysis/runEnv/weeklyLogResult"
+logDir="ckan_log"
+outputDir="log"
+
+resetLog()
+{
+    pushd $logDir
+    cp /var/log/apache2/ckan_default.custom.log.*  ./
+    gunzip -f *.gz
+    cat * > ckanAll.log
+    popd
+}
+
+runDailyUpdate()
+{
+    pushd $dailyDir
+    ln -sf /var/log/apache2/ckan_default.custom.log.1 ckanAll.log
+    ./update
+    cat dataset.csv >> $outputDir/dataset.csv
+    cat dataset-group.csv >> $outputDir/dataset-group.csv
+    cat dataset-organization.csv >> $outputDir/dataset-organization.csv
+    popd
+}
+
+runWeeklyUpdate()
+{
+    pushd $weeklyDir
+    ln -sf $logDir/ckanAll.log ckanAll.log
+    ./update
+    cp dataset.csv  dataset-group.csv  dataset-organization.csv $outputDir
+    popd
+}
+
+today=$(date +%u)
+
+if [ $today == 1 ]; then
+    resetLog
+    runWeeklyUpdate
+else
+    runDailyUpdate
+fi
