@@ -130,7 +130,7 @@ def datasetRequest(data):
 # parse apache2 request log to download or not
 def datasetDownloadandViewRequest(data):
     DOWNLOAD = r'^GET\s/dataset.*/download'
-    VIEW = r'^GET\s/dataset.*/resource.*/view.*'
+    VIEW = r'^GET\s/dataset.*/resource.*/view/'
     match_download = re.search(DOWNLOAD, data)
     match_view = re.search(VIEW, data)
     if match_download != None:
