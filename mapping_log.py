@@ -28,8 +28,10 @@ TIME = r'\[(?P<time>.*?)\]'
 REQUEST = r'\"(?P<request>.*?)\"'
 STATUS = r'(?P<status>\d{3})'
 SIZE = r'(?P<size>\S+)'
+REFER = r'\"(?P<refer>.*?)\"'
+UG = r'\"(?P<ug>.*?)\"'
 
-REGEX = HOST+SPACE+IDENTITY+SPACE+USER+SPACE+TIME+SPACE+REQUEST+SPACE+STATUS+SPACE+SIZE+SPACE
+REGEX = HOST+SPACE+IDENTITY+SPACE+USER+SPACE+TIME+SPACE+REQUEST+SPACE+STATUS+SPACE+SIZE+SPACE+REFER+SPACE+UG
 
 def logParser(log_line):
     match = re.search(REGEX,log_line)
@@ -37,7 +39,9 @@ def logParser(log_line):
             match.group('time'), 
             match.group('request') , 
             match.group('status') ,
-            match.group('size')
+            match.group('size'),
+            match.group('refer'),
+            match.group('ug')
             )
           )
 
@@ -164,27 +168,27 @@ for line in f: # read all lines already in the file
 
     if line: # if you got something...
         #print('got data:', line.strip())
-        host, time, request, status, size = logParser(line)
+        host, time, request, status, size, refer, ug = logParser(line)
         if host == '127.0.0.1':
             continue
         dataset = datasetRequest(request)
         download = datasetDownloadandViewRequest(request)
         print(request, ", " ,dataset)
         #print(host, dataset, download) # print IP_or_Host, dataste id or name, download true or false
-        dataset_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}'\r\n".format(host, dataset, download, time, size, request)
+        dataset_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}'\r\n".format(host, dataset, download, time, size, request, ug)
         #dataset_file.write(dataset_log)
-        csv_dataset_file.writerow([host, dataset, download, time, size, request])
+        csv_dataset_file.writerow([host, dataset, download, time, size, request, ug])
         #print(dataset_log)
         orgName = find_dataset_org(dataset)
         #dataset_org_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}'\r\n".format(orgName, host, dataset, download, time, size, request)
         #org_file.write(dataset_org_log)
-        csv_org_file.writerow([orgName, host, dataset, download, time, size, request])
+        csv_org_file.writerow([orgName, host, dataset, download, time, size, request, ug])
         dGroups = find_dataset_group(dataset)
         if dGroups != False:
             for dg in dGroups:
                 #dataset_group_log = "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}'\r\n".format(dg, host, dataset, download, time, size, request)
                 #group_file.write(dataset_group_log)
-                csv_group_file.writerow([dg, host, dataset, download, time, size, request])
+                csv_group_file.writerow([dg, host, dataset, download, time, size, request, ug])
 
 dataset_file.close()
 org_file.close()
